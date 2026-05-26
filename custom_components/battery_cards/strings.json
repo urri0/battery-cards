@@ -1,0 +1,38 @@
+{
+  "title": "Battery Cards",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add battery card",
+        "description": "Create a battery card sensor. Add this created sensor to Battery Notes afterwards.",
+        "data": {
+          "name": "Friendly name",
+          "object_id": "Object ID / slug",
+          "mode": "Battery mode",
+          "source_entity": "Source entity",
+          "rule": "Virtual battery rule"
+        }
+      }
+    },
+    "error": {
+      "invalid_object_id": "Object ID is invalid."
+    },
+    "abort": {
+      "already_configured": "This Battery Card already exists."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Battery card options",
+        "description": "Edit this battery card.",
+        "data": {
+          "name": "Friendly name",
+          "mode": "Battery mode",
+          "source_entity": "Source entity",
+          "rule": "Virtual battery rule"
+        }
+      }
+    }
+  }
+}

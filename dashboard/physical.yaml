@@ -1,0 +1,278 @@
+type: grid
+cards:
+  - type: heading
+    heading_style: title
+    heading: Физические батарейки
+    icon: mdi:battery-high
+  - type: custom:battery-state-card
+    filter: {}
+    secondary_info: >
+      {attributes.source_location_display} · 📍 {attributes.source_area}
+
+      🔋 {attributes.battery_type_and_quantity} · 🗓
+      {attributes.battery_last_replaced}
+    round: 0
+    style: |
+      .name {
+        font-weight: 700 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+
+      .secondary,
+      .secondary-info,
+      .battery-secondary,
+      .entity-secondary,
+      .text-secondary,
+      .info,
+      .name .secondary,
+      .name .secondary-info,
+      .name .battery-secondary,
+      .name .entity-secondary,
+      .name .text-secondary,
+      .name .info {
+        font-weight: 400 !important;
+        white-space: pre-line !important;
+        overflow: visible !important;
+        text-overflow: unset !important;
+        line-height: 1.22em !important;
+        max-height: none !important;
+      }
+
+      .entity-row,
+      .battery-row,
+      .row {
+        min-height: 60px !important;
+        height: auto !important;
+        align-items: center !important;
+      }
+    entities:
+      - entity: sensor.chalet_wifi_th_2023_1_battery_card
+        name: Датчик температуры и влажности
+        tap_action:
+          action: fire-dom-event
+          browser_mod:
+            service: browser_mod.popup
+            data:
+              browser_id: THIS
+              title: Датчик температуры и влажности — батарейка
+              size: normal
+              content:
+                type: vertical-stack
+                cards:
+                  - type: custom:button-card
+                    entity: >-
+                      sensor.chalet_wifi_th_2023_1_battery_card_battery_last_replaced
+                    name: Дата замены батарейки
+                    icon: mdi:calendar-refresh
+                    show_state: true
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid var(--divider-color)
+                  - type: custom:button-card
+                    entity: button.chalet_wifi_th_2023_1_battery_card_battery_replaced
+                    name: Отметить замену батарейки
+                    icon: mdi:battery-sync
+                    show_state: false
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid rgba(76,175,80,0.45)
+                      icon:
+                        - color: rgb(76,175,80)
+                  - type: custom:button-card
+                    entity: sensor.chalet_wifi_th_2023_1_battery_card
+                    name: Итоговая батарейка
+                    icon: mdi:battery-heart-variant
+                    show_state: true
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid var(--divider-color)
+      - entity: sensor.emastiff_battery_card
+        name: Датчик протечки
+        tap_action:
+          action: fire-dom-event
+          browser_mod:
+            service: browser_mod.popup
+            data:
+              browser_id: THIS
+              title: Датчик протечки — батарейка
+              size: normal
+              content:
+                type: vertical-stack
+                cards:
+                  - type: custom:button-card
+                    entity: sensor.emastiff_battery_card_battery_last_replaced
+                    name: Дата замены батарейки
+                    icon: mdi:calendar-refresh
+                    show_state: true
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid var(--divider-color)
+                  - type: custom:button-card
+                    entity: button.emastiff_battery_card_battery_replaced
+                    name: Отметить замену батарейки
+                    icon: mdi:battery-sync
+                    show_state: false
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid rgba(76,175,80,0.45)
+                      icon:
+                        - color: rgb(76,175,80)
+                  - type: custom:button-card
+                    entity: sensor.emastiff_battery_card
+                    name: Итоговая батарейка
+                    icon: mdi:battery-heart-variant
+                    show_state: true
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid var(--divider-color)
+      - entity: sensor.contact_sensor_1_battery_card
+        name: Датчик открытия двери
+        tap_action:
+          action: fire-dom-event
+          browser_mod:
+            service: browser_mod.popup
+            data:
+              browser_id: THIS
+              title: Датчик открытия двери — батарейка
+              size: normal
+              content:
+                type: vertical-stack
+                cards:
+                  - type: custom:button-card
+                    entity: sensor.contact_sensor_1_battery_card_battery_last_replaced
+                    name: Дата замены батарейки
+                    icon: mdi:calendar-refresh
+                    show_state: true
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid var(--divider-color)
+                  - type: custom:button-card
+                    entity: button.contact_sensor_1_battery_card_battery_replaced
+                    name: Отметить замену батарейки
+                    icon: mdi:battery-sync
+                    show_state: false
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid rgba(76,175,80,0.45)
+                      icon:
+                        - color: rgb(76,175,80)
+                  - type: custom:button-card
+                    entity: sensor.contact_sensor_1_battery_card
+                    name: Итоговая батарейка
+                    icon: mdi:battery-heart-variant
+                    show_state: true
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid var(--divider-color)
+      - entity: sensor.aqara_cube_t1_pro_battery_card
+        name: Aqara Cube T1 Pro
+        tap_action:
+          action: fire-dom-event
+          browser_mod:
+            service: browser_mod.popup
+            data:
+              browser_id: THIS
+              title: Aqara Cube T1 Pro — батарейка
+              size: normal
+              content:
+                type: vertical-stack
+                cards:
+                  - type: custom:button-card
+                    entity: >-
+                      sensor.aqara_cube_t1_pro_battery_card_battery_last_replaced
+                    name: Дата замены батарейки
+                    icon: mdi:calendar-refresh
+                    show_state: true
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid var(--divider-color)
+                  - type: custom:button-card
+                    entity: button.aqara_cube_t1_pro_battery_card_battery_replaced
+                    name: Отметить замену батарейки
+                    icon: mdi:battery-sync
+                    show_state: false
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid rgba(76,175,80,0.45)
+                      icon:
+                        - color: rgb(76,175,80)
+                  - type: custom:button-card
+                    entity: sensor.aqara_cube_t1_pro_battery_card
+                    name: Итоговая батарейка
+                    icon: mdi:battery-heart-variant
+                    show_state: true
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid var(--divider-color)
+    sort:
+      by: state
+    colors:
+      steps:
+        - value: 20
+          color: red
+        - value: 30
+          color: orange
+        - value: 100
+          color: green

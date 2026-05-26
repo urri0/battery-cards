@@ -1,0 +1,159 @@
+template:
+  - sensor:
+      - name: HA Battery Overall
+        unique_id: ha_battery_overall
+        icon: mdi:battery-heart-variant
+        state: >
+          {% set ns = namespace(total=0, nums=[], low=0, critical=0, bad=0) %}
+
+          {% for s in states.sensor %}
+            {% if s.entity_id.endswith('_battery_card') and s.attributes.get('battery_card') == true %}
+              {% set ns.total = ns.total + 1 %}
+              {% set raw = s.state | string | lower %}
+              {% set v = s.state | float(none) %}
+
+              {% if raw in ['unknown', 'unavailable', 'none', 'null', ''] %}
+                {% set ns.bad = ns.bad + 1 %}
+              {% elif v is not none %}
+                {% set ns.nums = ns.nums + [v] %}
+                {% if v <= 10 %}
+                  {% set ns.critical = ns.critical + 1 %}
+                {% elif v <= 25 %}
+                  {% set ns.low = ns.low + 1 %}
+                {% endif %}
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+
+          {% if ns.total == 0 %}
+            unknown
+          {% elif ns.bad > 0 or ns.critical > 0 %}
+            critical
+          {% elif ns.low > 0 %}
+            warning
+          {% else %}
+            ok
+          {% endif %}
+
+        attributes:
+          battery_count: >
+            {% set ns = namespace(total=0) %}
+            {% for s in states.sensor %}
+              {% if s.entity_id.endswith('_battery_card') and s.attributes.get('battery_card') == true %}
+                {% set ns.total = ns.total + 1 %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.total }}
+
+          min_battery: >
+            {% set ns = namespace(nums=[]) %}
+            {% for s in states.sensor %}
+              {% if s.entity_id.endswith('_battery_card') and s.attributes.get('battery_card') == true %}
+                {% set v = s.state | float(none) %}
+                {% if v is not none %}
+                  {% set ns.nums = ns.nums + [v] %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+            {% if ns.nums | count > 0 %}
+              {{ ns.nums | min | round(0) | int }}
+            {% else %}
+              unknown
+            {% endif %}
+
+          low_count: >
+            {% set ns = namespace(cnt=0) %}
+            {% for s in states.sensor %}
+              {% if s.entity_id.endswith('_battery_card') and s.attributes.get('battery_card') == true %}
+                {% set raw = s.state | string | lower %}
+                {% set v = s.state | float(none) %}
+                {% if raw not in ['unknown', 'unavailable', 'none', 'null', ''] and v is not none and v <= 25 and v > 10 %}
+                  {% set ns.cnt = ns.cnt + 1 %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.cnt }}
+
+          critical_count: >
+            {% set ns = namespace(cnt=0) %}
+            {% for s in states.sensor %}
+              {% if s.entity_id.endswith('_battery_card') and s.attributes.get('battery_card') == true %}
+                {% set v = s.state | float(none) %}
+                {% if v is not none and v <= 10 %}
+                  {% set ns.cnt = ns.cnt + 1 %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.cnt }}
+
+          bad_count: >
+            {% set ns = namespace(cnt=0) %}
+            {% for s in states.sensor %}
+              {% if s.entity_id.endswith('_battery_card') and s.attributes.get('battery_card') == true %}
+                {% if s.state | string | lower in ['unknown', 'unavailable', 'none', 'null', ''] %}
+                  {% set ns.cnt = ns.cnt + 1 %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.cnt }}
+
+          label: >
+            {% set ns = namespace(total=0, nums=[], low=0, critical=0, bad=0) %}
+
+            {% for s in states.sensor %}
+              {% if s.entity_id.endswith('_battery_card') and s.attributes.get('battery_card') == true %}
+                {% set ns.total = ns.total + 1 %}
+                {% set raw = s.state | string | lower %}
+                {% set v = s.state | float(none) %}
+
+                {% if raw in ['unknown', 'unavailable', 'none', 'null', ''] %}
+                  {% set ns.bad = ns.bad + 1 %}
+                {% elif v is not none %}
+                  {% set ns.nums = ns.nums + [v] %}
+                  {% if v <= 10 %}
+                    {% set ns.critical = ns.critical + 1 %}
+                  {% elif v <= 25 %}
+                    {% set ns.low = ns.low + 1 %}
+                  {% endif %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+
+            {% set minv = ns.nums | min if ns.nums | count > 0 else none %}
+
+            {% if ns.total == 0 %}
+              NO DATA
+            {% elif ns.bad > 0 %}
+              BAD {{ ns.bad }} · min {{ minv | round(0) | int if minv is not none else '—' }}%
+            {% elif ns.critical > 0 %}
+              CRIT {{ ns.critical }} · min {{ minv | round(0) | int if minv is not none else '—' }}%
+            {% elif ns.low > 0 %}
+              LOW {{ ns.low }} · min {{ minv | round(0) | int if minv is not none else '—' }}%
+            {% else %}
+              OK · min {{ minv | round(0) | int if minv is not none else '—' }}%
+            {% endif %}
+
+          problems: >
+            {% set ns = namespace(lines=[]) %}
+
+            {% for s in states.sensor %}
+              {% if s.entity_id.endswith('_battery_card') and s.attributes.get('battery_card') == true %}
+                {% set raw = s.state | string | lower %}
+                {% set v = s.state | float(none) %}
+                {% set n = state_attr(s.entity_id, 'friendly_name') or s.name %}
+                {% set reason = s.attributes.get('battery_reason', '') %}
+                {% set area = s.attributes.get('source_area', '—') %}
+
+                {% if raw in ['unknown', 'unavailable', 'none', 'null', ''] %}
+                  {% set ns.lines = ns.lines + [n ~ ' [' ~ area ~ ']: ' ~ s.state] %}
+                {% elif v is not none and v <= 25 %}
+                  {% if reason and reason not in ['source_value', 'ok'] %}
+                    {% set ns.lines = ns.lines + [n ~ ' [' ~ area ~ ']: ' ~ (v | round(0) | int) ~ '% · ' ~ reason] %}
+                  {% else %}
+                    {% set ns.lines = ns.lines + [n ~ ' [' ~ area ~ ']: ' ~ (v | round(0) | int) ~ '%'] %}
+                  {% endif %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+
+            {{ ns.lines | join('\n') }}

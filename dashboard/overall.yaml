@@ -1,0 +1,112 @@
+type: custom:button-card
+entity: sensor.ha_battery_overall
+name: Батарейки
+icon: mdi:battery-heart-variant
+show_state: false
+show_label: true
+label: |
+  [[[
+    return entity?.attributes?.label || 'NO DATA';
+  ]]]
+tap_action:
+  action: navigate
+  navigation_path: /dashboard-unknown/noc
+hold_action:
+  action: more-info
+double_tap_action:
+  action: more-info
+styles:
+  card:
+    - padding: 3px 10px
+    - border-radius: 12px
+    - border: 1px solid var(--divider-color)
+    - box-shadow: none
+    - background: var(--card-background-color)
+    - box-sizing: border-box
+    - height: 40px
+  grid:
+    - grid-template-areas: "\"i n\" \"i l\""
+    - grid-template-columns: 30px 1fr
+    - grid-template-rows: 17px 14px
+    - column-gap: 10px
+    - row-gap: 3px
+    - align-items: center
+  icon:
+    - width: 22px
+    - color: var(--info-color, var(--primary-color))
+    - opacity: 0.92
+  name:
+    - justify-self: start
+    - align-self: end
+    - font-weight: 600
+    - font-size: 13px
+    - line-height: 14px
+    - white-space: nowrap
+    - overflow: hidden
+    - text-overflow: ellipsis
+  label:
+    - justify-self: start
+    - align-self: start
+    - font-size: 12px
+    - line-height: 13px
+    - font-weight: 700
+    - color: var(--secondary-text-color)
+    - white-space: nowrap
+    - overflow: hidden
+    - text-overflow: ellipsis
+state:
+  - value: ok
+    styles:
+      card:
+        - border: 1px solid rgba(76,175,80,0.85)
+        - background: >-
+            linear-gradient(135deg, rgba(76,175,80,0.10),
+            var(--card-background-color))
+      icon:
+        - color: rgb(76,175,80)
+      label:
+        - color: rgb(46,125,50)
+  - value: warning
+    styles:
+      card:
+        - border: 1px solid rgba(255,193,7,0.95)
+        - background: >-
+            linear-gradient(135deg, rgba(255,193,7,0.14),
+            var(--card-background-color))
+      icon:
+        - color: rgb(255,193,7)
+      label:
+        - color: rgb(180,125,0)
+  - value: critical
+    styles:
+      card:
+        - border: 1px solid rgba(244,67,54,0.95)
+        - background: >-
+            linear-gradient(135deg, rgba(244,67,54,0.14),
+            var(--card-background-color))
+      icon:
+        - color: rgb(244,67,54)
+      label:
+        - color: rgb(244,67,54)
+  - value: unknown
+    styles:
+      card:
+        - border: 1px solid var(--divider-color)
+      icon:
+        - color: rgba(0,0,0,0.30)
+        - opacity: "1"
+      name:
+        - color: rgba(0,0,0,0.50)
+      label:
+        - color: rgba(0,0,0,0.35)
+  - value: unavailable
+    styles:
+      card:
+        - border: 1px solid var(--divider-color)
+      icon:
+        - color: rgba(0,0,0,0.30)
+        - opacity: "1"
+      name:
+        - color: rgba(0,0,0,0.50)
+      label:
+        - color: rgba(0,0,0,0.35)

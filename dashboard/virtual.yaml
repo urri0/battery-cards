@@ -1,0 +1,492 @@
+type: grid
+cards:
+  - type: heading
+    heading_style: title
+    heading: Виртуальные батарейки
+    icon: mdi:battery-alert-variant-outline
+  - type: custom:battery-state-card
+    filter: {}
+    secondary_info: >
+      {attributes.source_location_display} · 📍 {attributes.source_area}
+
+      🔋 {attributes.battery_type_and_quantity} · 🗓
+      {attributes.battery_last_replaced}
+    round: 0
+    style: |
+      .name {
+        font-weight: 700 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+
+      .secondary,
+      .secondary-info,
+      .battery-secondary,
+      .entity-secondary,
+      .text-secondary,
+      .info,
+      .name .secondary,
+      .name .secondary-info,
+      .name .battery-secondary,
+      .name .entity-secondary,
+      .name .text-secondary,
+      .name .info {
+        font-weight: 400 !important;
+        white-space: pre-line !important;
+        overflow: visible !important;
+        text-overflow: unset !important;
+        line-height: 1.22em !important;
+        max-height: none !important;
+      }
+
+      .entity-row,
+      .battery-row,
+      .row {
+        min-height: 60px !important;
+        height: auto !important;
+        align-items: center !important;
+      }
+    entities:
+      - entity: sensor.homgar_ulica_battery_card
+        name: Улица (МБ)
+        tap_action:
+          action: fire-dom-event
+          browser_mod:
+            service: browser_mod.popup
+            data:
+              browser_id: THIS
+              title: Улица (МБ) — батарейка
+              size: normal
+              content:
+                type: vertical-stack
+                cards:
+                  - type: custom:button-card
+                    entity: sensor.homgar_ulica_battery_card_battery_last_replaced
+                    name: Дата замены батарейки
+                    icon: mdi:calendar-refresh
+                    show_state: true
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid var(--divider-color)
+                  - type: custom:button-card
+                    entity: button.homgar_ulica_battery_card_battery_replaced
+                    name: Отметить замену батарейки
+                    icon: mdi:battery-sync
+                    show_state: false
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid rgba(76,175,80,0.45)
+                      icon:
+                        - color: rgb(76,175,80)
+                  - type: custom:button-card
+                    entity: sensor.homgar_ulica_battery_card
+                    name: Итоговая батарейка
+                    icon: mdi:battery-heart-variant
+                    show_state: true
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid var(--divider-color)
+      - entity: sensor.homgar_balkon_battery_card
+        name: Улица (ББ)
+        tap_action:
+          action: fire-dom-event
+          browser_mod:
+            service: browser_mod.popup
+            data:
+              browser_id: THIS
+              title: Улица (ББ) — батарейка
+              size: normal
+              content:
+                type: vertical-stack
+                cards:
+                  - type: custom:button-card
+                    entity: sensor.homgar_balkon_battery_card_battery_last_replaced
+                    name: Дата замены батарейки
+                    icon: mdi:calendar-refresh
+                    show_state: true
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid var(--divider-color)
+                  - type: custom:button-card
+                    entity: button.homgar_balkon_battery_card_battery_replaced
+                    name: Отметить замену батарейки
+                    icon: mdi:battery-sync
+                    show_state: false
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid rgba(76,175,80,0.45)
+                      icon:
+                        - color: rgb(76,175,80)
+                  - type: custom:button-card
+                    entity: sensor.homgar_balkon_battery_card
+                    name: Итоговая батарейка
+                    icon: mdi:battery-heart-variant
+                    show_state: true
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid var(--divider-color)
+      - entity: sensor.homgar_spalnya_battery_card
+        name: Коридор
+        tap_action:
+          action: fire-dom-event
+          browser_mod:
+            service: browser_mod.popup
+            data:
+              browser_id: THIS
+              title: Коридор — батарейка
+              size: normal
+              content:
+                type: vertical-stack
+                cards:
+                  - type: custom:button-card
+                    entity: sensor.homgar_spalnya_battery_card_battery_last_replaced
+                    name: Дата замены батарейки
+                    icon: mdi:calendar-refresh
+                    show_state: true
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid var(--divider-color)
+                  - type: custom:button-card
+                    entity: button.homgar_spalnya_battery_card_battery_replaced
+                    name: Отметить замену батарейки
+                    icon: mdi:battery-sync
+                    show_state: false
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid rgba(76,175,80,0.45)
+                      icon:
+                        - color: rgb(76,175,80)
+                  - type: custom:button-card
+                    entity: sensor.homgar_spalnya_battery_card
+                    name: Итоговая батарейка
+                    icon: mdi:battery-heart-variant
+                    show_state: true
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid var(--divider-color)
+      - entity: sensor.nobito_spalnya_battery_card
+        name: Спальня
+        tap_action:
+          action: fire-dom-event
+          browser_mod:
+            service: browser_mod.popup
+            data:
+              browser_id: THIS
+              title: Спальня — батарейка
+              size: normal
+              content:
+                type: vertical-stack
+                cards:
+                  - type: custom:button-card
+                    entity: sensor.nobito_spalnya_battery_card_battery_last_replaced
+                    name: Дата замены батарейки
+                    icon: mdi:calendar-refresh
+                    show_state: true
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid var(--divider-color)
+                  - type: custom:button-card
+                    entity: button.nobito_spalnya_battery_card_battery_replaced
+                    name: Отметить замену батарейки
+                    icon: mdi:battery-sync
+                    show_state: false
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid rgba(76,175,80,0.45)
+                      icon:
+                        - color: rgb(76,175,80)
+                  - type: custom:button-card
+                    entity: sensor.nobito_spalnya_battery_card
+                    name: Итоговая батарейка
+                    icon: mdi:battery-heart-variant
+                    show_state: true
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid var(--divider-color)
+      - entity: sensor.nobito_zal_battery_card
+        name: Зал
+        tap_action:
+          action: fire-dom-event
+          browser_mod:
+            service: browser_mod.popup
+            data:
+              browser_id: THIS
+              title: Зал — батарейка
+              size: normal
+              content:
+                type: vertical-stack
+                cards:
+                  - type: custom:button-card
+                    entity: sensor.nobito_zal_battery_card_battery_last_replaced
+                    name: Дата замены батарейки
+                    icon: mdi:calendar-refresh
+                    show_state: true
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid var(--divider-color)
+                  - type: custom:button-card
+                    entity: button.nobito_zal_battery_card_battery_replaced
+                    name: Отметить замену батарейки
+                    icon: mdi:battery-sync
+                    show_state: false
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid rgba(76,175,80,0.45)
+                      icon:
+                        - color: rgb(76,175,80)
+                  - type: custom:button-card
+                    entity: sensor.nobito_zal_battery_card
+                    name: Итоговая батарейка
+                    icon: mdi:battery-heart-variant
+                    show_state: true
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid var(--divider-color)
+      - entity: sensor.nobito_balkon_battery_card
+        name: Балкон
+        tap_action:
+          action: fire-dom-event
+          browser_mod:
+            service: browser_mod.popup
+            data:
+              browser_id: THIS
+              title: Балкон — батарейка
+              size: normal
+              content:
+                type: vertical-stack
+                cards:
+                  - type: custom:button-card
+                    entity: sensor.nobito_balkon_battery_card_battery_last_replaced
+                    name: Дата замены батарейки
+                    icon: mdi:calendar-refresh
+                    show_state: true
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid var(--divider-color)
+                  - type: custom:button-card
+                    entity: button.nobito_balkon_battery_card_battery_replaced
+                    name: Отметить замену батарейки
+                    icon: mdi:battery-sync
+                    show_state: false
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid rgba(76,175,80,0.45)
+                      icon:
+                        - color: rgb(76,175,80)
+                  - type: custom:button-card
+                    entity: sensor.nobito_balkon_battery_card
+                    name: Итоговая батарейка
+                    icon: mdi:battery-heart-variant
+                    show_state: true
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid var(--divider-color)
+      - entity: sensor.nobito_masha_battery_card
+        name: Маша
+        tap_action:
+          action: fire-dom-event
+          browser_mod:
+            service: browser_mod.popup
+            data:
+              browser_id: THIS
+              title: Маша — батарейка
+              size: normal
+              content:
+                type: vertical-stack
+                cards:
+                  - type: custom:button-card
+                    entity: sensor.nobito_masha_battery_card_battery_last_replaced
+                    name: Дата замены батарейки
+                    icon: mdi:calendar-refresh
+                    show_state: true
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid var(--divider-color)
+                  - type: custom:button-card
+                    entity: button.nobito_masha_battery_card_battery_replaced
+                    name: Отметить замену батарейки
+                    icon: mdi:battery-sync
+                    show_state: false
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid rgba(76,175,80,0.45)
+                      icon:
+                        - color: rgb(76,175,80)
+                  - type: custom:button-card
+                    entity: sensor.nobito_masha_battery_card
+                    name: Итоговая батарейка
+                    icon: mdi:battery-heart-variant
+                    show_state: true
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid var(--divider-color)
+      - entity: sensor.nobito_mama_battery_card
+        name: Мама
+        tap_action:
+          action: fire-dom-event
+          browser_mod:
+            service: browser_mod.popup
+            data:
+              browser_id: THIS
+              title: Мама — батарейка
+              size: normal
+              content:
+                type: vertical-stack
+                cards:
+                  - type: custom:button-card
+                    entity: sensor.nobito_mama_battery_card_battery_last_replaced
+                    name: Дата замены батарейки
+                    icon: mdi:calendar-refresh
+                    show_state: true
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid var(--divider-color)
+                  - type: custom:button-card
+                    entity: button.nobito_mama_battery_card_battery_replaced
+                    name: Отметить замену батарейки
+                    icon: mdi:battery-sync
+                    show_state: false
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid rgba(76,175,80,0.45)
+                      icon:
+                        - color: rgb(76,175,80)
+                  - type: custom:button-card
+                    entity: sensor.nobito_mama_battery_card
+                    name: Итоговая батарейка
+                    icon: mdi:battery-heart-variant
+                    show_state: true
+                    tap_action:
+                      action: more-info
+                    styles:
+                      card:
+                        - height: 44px
+                        - border-radius: 12px
+                        - box-shadow: none
+                        - border: 1px solid var(--divider-color)
+    sort:
+      by: state
+    colors:
+      steps:
+        - value: 20
+          color: red
+        - value: 30
+          color: orange
+        - value: 100
+          color: green
