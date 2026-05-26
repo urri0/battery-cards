@@ -4,13 +4,34 @@
     "step": {
       "user": {
         "title": "Add battery card",
-        "description": "Create a battery card sensor. Add this created sensor to Battery Notes afterwards.",
+        "description": "{hint}",
         "data": {
           "name": "Friendly name",
           "object_id": "Object ID / slug",
-          "mode": "Battery mode",
+          "mode": "Battery type"
+        }
+      },
+      "physical": {
+        "title": "Physical battery",
+        "description": "{description}",
+        "data": {
+          "source_entity": "Battery percent sensor"
+        }
+      },
+      "virtual_rule": {
+        "title": "Virtual battery rule",
+        "description": "{description}",
+        "data": {
+          "rule": "How to calculate battery"
+        }
+      },
+      "virtual_source": {
+        "title": "Virtual battery source",
+        "description": "{description}",
+        "data": {
           "source_entity": "Source entity",
-          "rule": "Virtual battery rule"
+          "battery_type_hint": "Battery type hint",
+          "min_voltage": "Minimum voltage threshold"
         }
       }
     },
@@ -25,12 +46,33 @@
     "step": {
       "init": {
         "title": "Battery card options",
-        "description": "Edit this battery card.",
+        "description": "{description}",
         "data": {
           "name": "Friendly name",
-          "mode": "Battery mode",
+          "mode": "Battery type"
+        }
+      },
+      "physical": {
+        "title": "Physical battery options",
+        "description": "{description}",
+        "data": {
+          "source_entity": "Battery percent sensor"
+        }
+      },
+      "virtual_rule": {
+        "title": "Virtual battery rule",
+        "description": "{description}",
+        "data": {
+          "rule": "How to calculate battery"
+        }
+      },
+      "virtual_source": {
+        "title": "Virtual battery source",
+        "description": "{description}",
+        "data": {
           "source_entity": "Source entity",
-          "rule": "Virtual battery rule"
+          "battery_type_hint": "Battery type hint",
+          "min_voltage": "Minimum voltage threshold"
         }
       }
     }

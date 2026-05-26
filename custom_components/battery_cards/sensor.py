@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import logging
+import re
 from typing import Any
 
 from homeassistant.components.sensor import (
@@ -28,15 +29,25 @@ except ImportError:
 
 from .const import (
     BAD_STATES,
+    CONF_BATTERY_TYPE_HINT,
+    CONF_MIN_VOLTAGE,
     CONF_MODE,
     CONF_OBJECT_ID,
     CONF_RULE,
     CONF_SOURCE_ENTITY,
+    DEFAULT_BATTERY_TYPE_HINT,
+    DEFAULT_MIN_VOLTAGE,
     DOMAIN,
+    LOW_BINARY_OFF_STATES,
+    LOW_BINARY_ON_STATES,
     MODE_PHYSICAL,
     MODE_VIRTUAL,
+    RULE_BATTERY_LOW_BINARY,
+    RULE_PHYSICAL_PERCENT,
     RULE_SOURCE_UNAVAILABLE,
     RULE_TEMPERATURE_ZERO,
+    RULE_VOLTAGE_THRESHOLD,
+    VERSION,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -61,6 +72,16 @@ class EntityLocation:
     location_icon: str
     location_display: str
     resolved_from: str
+
+
+@dataclass
+class VoltageInfo:
+    """Parsed voltage info."""
+
+    voltage: float | None
+    raw_value: str | None
+    unit: str | None
+    unit_detected: str
 
 
 async def async_setup_entry(
@@ -107,7 +128,7 @@ class BatteryCardSensor(SensorEntity):
     @property
     def source_entity(self) -> str:
         """Return source entity."""
-        return self._cfg[CONF_SOURCE_ENTITY]
+        return str(self._cfg.get(CONF_SOURCE_ENTITY, "")).strip()
 
     @property
     def battery_mode(self) -> str:
@@ -116,8 +137,21 @@ class BatteryCardSensor(SensorEntity):
 
     @property
     def battery_rule(self) -> str:
-        """Return virtual battery rule."""
+        """Return battery rule."""
+        if self.battery_mode == MODE_PHYSICAL:
+            return RULE_PHYSICAL_PERCENT
+
         return self._cfg.get(CONF_RULE, RULE_SOURCE_UNAVAILABLE)
+
+    @property
+    def min_voltage(self) -> float:
+        """Return voltage threshold in volts."""
+        return _to_float(self._cfg.get(CONF_MIN_VOLTAGE, DEFAULT_MIN_VOLTAGE)) or DEFAULT_MIN_VOLTAGE
+
+    @property
+    def battery_type_hint(self) -> str:
+        """Return battery type hint."""
+        return str(self._cfg.get(CONF_BATTERY_TYPE_HINT, DEFAULT_BATTERY_TYPE_HINT))
 
     @property
     def name(self) -> str | None:
@@ -132,16 +166,21 @@ class BatteryCardSensor(SensorEntity):
             "name": self.name,
             "manufacturer": "Battery Cards",
             "model": self.battery_mode,
+            "sw_version": VERSION,
         }
 
     async def async_added_to_hass(self) -> None:
         """Track source and Battery Notes sibling entities."""
+        notes = self._battery_notes_entities()
+
         tracked_entities = [
             self.source_entity,
-            self._battery_notes_entities().battery_type,
-            self._battery_notes_entities().battery_last_replaced,
-            self._battery_notes_entities().battery_replaced_button,
+            notes.battery_type,
+            notes.battery_last_replaced,
+            notes.battery_replaced_button,
         ]
+
+        tracked_entities = [entity_id for entity_id in tracked_entities if entity_id]
 
         self.async_on_remove(
             async_track_state_change_event(
@@ -157,71 +196,137 @@ class BatteryCardSensor(SensorEntity):
         self.async_write_ha_state()
 
     @property
-    def native_value(self) -> int | None:
+    def native_value(self) -> int:
         """Return battery level."""
+        if not self.source_entity:
+            return 0
+
         state_obj = self.hass.states.get(self.source_entity)
 
         if self.battery_mode == MODE_PHYSICAL:
-            if state_obj is None:
-                return None
-
-            raw = str(state_obj.state).strip().lower()
-            if raw in BAD_STATES:
-                return None
-
-            value = _to_float(raw)
-            if value is None:
-                return None
-
-            return _clamp_percent(round(value))
+            return self._physical_value(state_obj)
 
         if self.battery_mode == MODE_VIRTUAL:
             return self._virtual_value(state_obj)
 
-        return None
+        return 0
 
-    def _virtual_value(self, state_obj) -> int:
-        """Return virtual battery value."""
+    def _physical_value(self, state_obj) -> int:
+        """Return physical percent battery value."""
         if state_obj is None:
             return 0
 
         raw = str(state_obj.state).strip().lower()
+        if raw in BAD_STATES:
+            return 0
 
-        if self.battery_rule == RULE_SOURCE_UNAVAILABLE:
-            if raw in BAD_STATES:
-                return 0
-            return 100
+        value = _to_float(raw)
+        if value is None:
+            return 0
 
-        if self.battery_rule == RULE_TEMPERATURE_ZERO:
-            if raw in BAD_STATES:
-                return 0
+        return _clamp_percent(round(value))
 
-            value = _to_float(raw)
-            if value is None:
-                return 0
+    def _virtual_value(self, state_obj) -> int:
+        """Return virtual battery value."""
+        rule = self.battery_rule
 
-            if abs(value) < 0.001:
-                return 0
+        if rule == RULE_SOURCE_UNAVAILABLE:
+            return self._source_unavailable_value(state_obj)
 
-            return 100
+        if rule == RULE_TEMPERATURE_ZERO:
+            return self._temperature_zero_value(state_obj)
 
+        if rule == RULE_BATTERY_LOW_BINARY:
+            return self._battery_low_binary_value(state_obj)
+
+        if rule == RULE_VOLTAGE_THRESHOLD:
+            return self._voltage_threshold_value(state_obj)
+
+        return self._source_unavailable_value(state_obj)
+
+    def _source_unavailable_value(self, state_obj) -> int:
+        """Return 100 when source is available, 0 when source is unavailable."""
+        if state_obj is None:
+            return 0
+
+        raw = str(state_obj.state).strip().lower()
         if raw in BAD_STATES:
             return 0
 
         return 100
 
+    def _temperature_zero_value(self, state_obj) -> int:
+        """Return 0 when temperature is zero or source is unavailable."""
+        if state_obj is None:
+            return 0
+
+        raw = str(state_obj.state).strip().lower()
+        if raw in BAD_STATES:
+            return 0
+
+        value = _to_float(raw)
+        if value is None:
+            return 0
+
+        if abs(value) < 0.001:
+            return 0
+
+        return 100
+
+    def _battery_low_binary_value(self, state_obj) -> int:
+        """Return 10 when low battery flag is active."""
+        if state_obj is None:
+            return 0
+
+        raw = str(state_obj.state).strip().lower()
+        if raw in BAD_STATES:
+            return 0
+
+        if raw in LOW_BINARY_ON_STATES:
+            return 10
+
+        if raw in LOW_BINARY_OFF_STATES:
+            return 100
+
+        value = _to_float(raw)
+        if value is not None:
+            if abs(value) < 0.001:
+                return 100
+
+            if abs(value - 1.0) < 0.001:
+                return 10
+
+            # Некорректное числовое значение для battery_low flag.
+            # Например, пользователь случайно выбрал процентный sensor 87%.
+            # Для dashboard лучше вернуть 0%, а причину показать в attributes.
+            return 0
+
+        return 0
+
+    def _voltage_threshold_value(self, state_obj) -> int:
+        """Return 10 when voltage is below threshold."""
+        if state_obj is None:
+            return 0
+
+        raw = str(state_obj.state).strip().lower()
+        if raw in BAD_STATES:
+            return 0
+
+        voltage_info = _voltage_info(state_obj)
+        if voltage_info.voltage is None:
+            return 0
+
+        return 10 if voltage_info.voltage < self.min_voltage else 100
+
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra attributes."""
-        state_obj = self.hass.states.get(self.source_entity)
+        state_obj = self.hass.states.get(self.source_entity) if self.source_entity else None
         notes = self._battery_notes_entities()
 
         # Основная логика location:
         # 1) сначала берём location самой Battery Cards entity
         # 2) если у неё нет area/floor — fallback на source_entity
-        #
-        # Так виртуалки Nobito/HomGar не зависят от кривой привязки
-        # родительского устройства/исходного датчика.
         location = _resolve_location_with_fallback(
             self.hass,
             primary_entity_id=self.entity_id,
@@ -239,6 +344,12 @@ class BatteryCardSensor(SensorEntity):
         type_state = self.hass.states.get(notes.battery_type)
         date_state = self.hass.states.get(notes.battery_last_replaced)
 
+        voltage_info = (
+            _voltage_info(state_obj)
+            if self.battery_rule == RULE_VOLTAGE_THRESHOLD
+            else _not_applicable_voltage_info()
+        )
+
         return {
             "battery_card": True,
             "battery_mode": self.battery_mode,
@@ -247,7 +358,6 @@ class BatteryCardSensor(SensorEntity):
             "source_entity": self.source_entity,
             "source_state": source_state,
             # Финальные location/area для карточки.
-            # Они берутся от Battery Cards entity, fallback — source_entity.
             "source_area": location.area,
             "source_floor": location.floor,
             "source_location": location.location,
@@ -272,10 +382,19 @@ class BatteryCardSensor(SensorEntity):
             "battery_last_replaced": _format_date(
                 date_state.state if date_state is not None else None
             ),
+            "voltage": voltage_info.voltage,
+            "voltage_raw": voltage_info.raw_value,
+            "voltage_unit": voltage_info.unit,
+            "voltage_unit_detected": voltage_info.unit_detected,
+            "min_voltage": self.min_voltage,
+            "battery_type_hint": self.battery_type_hint,
         }
 
     def _battery_reason(self, state_obj) -> str:
         """Return battery reason."""
+        if not self.source_entity:
+            return "source_missing"
+
         if self.battery_mode == MODE_PHYSICAL:
             if state_obj is None:
                 return "source_missing"
@@ -284,27 +403,61 @@ class BatteryCardSensor(SensorEntity):
             if raw in BAD_STATES:
                 return "source_unavailable"
 
-            return "source_value"
+            value = _to_float(raw)
+            if value is None:
+                return "source_not_numeric"
 
-        if self.battery_mode == MODE_VIRTUAL:
-            if state_obj is None:
-                return "source_missing"
+            return "source_percent"
 
-            raw = str(state_obj.state).strip().lower()
+        if self.battery_mode != MODE_VIRTUAL:
+            return "unknown"
 
-            if raw in BAD_STATES:
-                return "source_unavailable"
+        rule = self.battery_rule
 
-            if self.battery_rule == RULE_TEMPERATURE_ZERO:
-                value = _to_float(raw)
-                if value is None:
-                    return "source_not_numeric"
-                if abs(value) < 0.001:
-                    return "temperature_zero"
+        if state_obj is None:
+            return "source_missing"
 
+        raw = str(state_obj.state).strip().lower()
+
+        if raw in BAD_STATES:
+            return "source_unavailable"
+
+        if rule == RULE_SOURCE_UNAVAILABLE:
             return "ok"
 
-        return "unknown"
+        if rule == RULE_TEMPERATURE_ZERO:
+            value = _to_float(raw)
+            if value is None:
+                return "source_not_numeric"
+            if abs(value) < 0.001:
+                return "temperature_zero"
+            return "ok"
+
+        if rule == RULE_BATTERY_LOW_BINARY:
+            if raw in LOW_BINARY_ON_STATES:
+                return "low_binary_on"
+            if raw in LOW_BINARY_OFF_STATES:
+                return "low_binary_off"
+
+            value = _to_float(raw)
+            if value is not None:
+                if abs(value) < 0.001:
+                    return "low_binary_off"
+                if abs(value - 1.0) < 0.001:
+                    return "low_binary_on"
+                return "low_binary_invalid_numeric"
+
+            return "low_binary_unknown_value"
+
+        if rule == RULE_VOLTAGE_THRESHOLD:
+            voltage_info = _voltage_info(state_obj)
+            if voltage_info.voltage is None:
+                return "voltage_not_numeric"
+            if voltage_info.voltage < self.min_voltage:
+                return "voltage_below_threshold"
+            return "voltage_ok"
+
+        return "unknown_rule"
 
     def _battery_notes_entities(self) -> BatteryNotesEntities:
         """Return Battery Notes sibling entities based on this entity_id."""
@@ -328,6 +481,8 @@ def _to_float(value: Any) -> float | None:
     - 75 %
     - 75%
     - 0,0
+    - 2.95 V
+    - 2950 mV
     """
     if value is None:
         return None
@@ -337,13 +492,93 @@ def _to_float(value: Any) -> float | None:
     if not text:
         return None
 
-    text = text.rstrip("%").strip()
-    text = text.replace(",", ".")
+    text = text.replace("%", "").replace(",", ".").strip()
 
     try:
         return float(text)
     except (TypeError, ValueError):
+        pass
+
+    match = re.search(r"[-+]?\d+(?:\.\d+)?", text)
+    if match is None:
         return None
+
+    try:
+        return float(match.group(0))
+    except (TypeError, ValueError):
+        return None
+
+
+def _not_applicable_voltage_info() -> VoltageInfo:
+    """Return voltage info for non-voltage rules."""
+    return VoltageInfo(
+        voltage=None,
+        raw_value=None,
+        unit=None,
+        unit_detected="not_applicable",
+    )
+
+
+def _voltage_info(state_obj) -> VoltageInfo:
+    """Parse voltage from state object and return diagnostic info."""
+    if state_obj is None:
+        return VoltageInfo(
+            voltage=None,
+            raw_value="missing",
+            unit="",
+            unit_detected="missing",
+        )
+
+    raw_value = str(state_obj.state or "").strip()
+    unit = str(state_obj.attributes.get("unit_of_measurement", "") or "").strip()
+
+    value = _to_float(raw_value)
+    if value is None:
+        return VoltageInfo(
+            voltage=None,
+            raw_value=raw_value,
+            unit=unit,
+            unit_detected="not_numeric",
+        )
+
+    raw_lower = raw_value.lower()
+    unit_lower = unit.lower()
+
+    # Explicit mV in state or unit.
+    if "mv" in raw_lower or unit_lower in {"mv", "millivolt", "millivolts"}:
+        return VoltageInfo(
+            voltage=value / 1000.0,
+            raw_value=raw_value,
+            unit=unit,
+            unit_detected="mV",
+        )
+
+    # Explicit V in unit/state.
+    if unit_lower in {"v", "volt", "volts"} or raw_lower.endswith("v"):
+        return VoltageInfo(
+            voltage=value,
+            raw_value=raw_value,
+            unit=unit,
+            unit_detected="V",
+        )
+
+    # Heuristic:
+    # Battery voltage cannot realistically be 2950 V, so large values are treated as mV.
+    # This is diagnostic-visible via voltage_unit_detected=mV_auto.
+    if value > 20:
+        return VoltageInfo(
+            voltage=value / 1000.0,
+            raw_value=raw_value,
+            unit=unit,
+            unit_detected="mV_auto",
+        )
+
+    return VoltageInfo(
+        voltage=value,
+        raw_value=raw_value,
+        unit=unit,
+        unit_detected="V_auto",
+    )
 
 
 def _clamp_percent(value: int) -> int:
