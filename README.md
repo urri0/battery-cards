@@ -1597,4 +1597,4 @@ Battery Cards uses and complements these Home Assistant projects:
 - [Battery Notes for Home Assistant](https://github.com/andrew-codechimp/ha-battery-notes/)
 - [Battery State Card](https://github.com/maxwroc/battery-state-card)
 
-Battery Cards for Home Assistant was generated with assistance of ChatGPT, but architecture, testing, and integration were done by the user.
+Battery Cards for Home Assistant. AI-assisted development; architecture, testing, and real-world validation by the repository owner.

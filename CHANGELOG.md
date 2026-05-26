@@ -10,6 +10,31 @@ This project uses version numbers in the `MAJOR.MINOR.PATCH` style:
 
 ---
 
+## v0.2.1
+
+Patch documentation and repository metadata release.
+
+### Added
+
+- Added MIT license to the release source archive.
+- Added `CHANGELOG.md` to the release source archive.
+- Added explicit development note:
+  - AI-assisted development
+  - architecture, testing, and real-world validation by the repository owner
+
+### Changed
+
+- Updated integration metadata version to `0.2.1`.
+- Updated repository description and README attribution text.
+
+### Notes
+
+- No functional changes to the Home Assistant integration logic.
+- No changes to dashboard examples.
+- No changes to package examples.
+
+---
+
 ## v0.2.0
 
 Second test release.
